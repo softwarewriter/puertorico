@@ -1,12 +1,15 @@
 package no.jergan.puertorico
 
 import cats.effect.{ConcurrentEffect, Resource, Sync, Timer}
-import io.unsecurity.Server.toHttpRoutes
+import no.jergan.puertorico.model.World
 import org.http4s.dsl.io.{->, GET, Root}
+import org.http4s.headers.`Content-Type`
 import org.http4s.server.{Router, Server}
-import org.http4s.{HttpRoutes, Response, Status}
+import org.http4s.{HttpRoutes, MediaType, Response, Status}
 
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext
+import scalatags.Text.all._
 
 /**
  * HTTP endpoints definitions.
@@ -15,15 +18,21 @@ import scala.concurrent.ExecutionContext
  */
 object Endpoints {
 
-   def create[F[_]: ConcurrentEffect: Timer](configuration: Configuration, executionContext: ExecutionContext): Resource[F, Server[F]] = {
+   def create[F[_]: ConcurrentEffect: Timer](configuration: Configuration,
+                                             executionContext: ExecutionContext,
+                                             worlds: ListBuffer[World]
+                                            ): Resource[F, Server[F]] = {
 
-      val simpleHttpService: HttpRoutes[F] = HttpRoutes.of[F] {
+      val service: HttpRoutes[F] = HttpRoutes.of[F] {
          case GET -> Root => Sync[F].pure {
-            Response[F](Status.Ok).withEntity("i am simple")
+           worlds.addOne(worlds.iterator.next())
+           Response[F](Status.Ok)
+             .withEntity(html(head(), body(h1("i am simple " + worlds.size))).render)
+             .withContentType(`Content-Type`(MediaType.text.html))
          }
       }
       val routes = Router(
-         "/simple"-> simpleHttpService,
+         "/"-> service,
       )
 
       HttpServer[F](configuration.port, configuration.bindAddress, executionContext, routes)

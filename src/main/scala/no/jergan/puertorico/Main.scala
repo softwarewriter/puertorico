@@ -1,7 +1,10 @@
 package no.jergan.puertorico
 
 import cats.effect.{ExitCode, IO, IOApp, Resource}
+import no.jergan.puertorico.model.World
 import org.http4s.server.Server
+
+import scala.collection.mutable.ListBuffer
 
 /**
  * Entry point.
@@ -13,12 +16,12 @@ object Main extends IOApp {
   def createApplication(configuration: Configuration): Resource[IO, Server[IO]] = {
     for {
       executionContext <- ExecutionContexts.cpuBoundExecutionContext[IO]("main-execution-context")
-      httpServer <- Endpoints.create[IO](configuration, executionContext)
+      httpServer <- Endpoints.create[IO](configuration, executionContext, new ListBuffer().addOne(World.initial(configuration.players)))
     } yield httpServer
   }
 
   override def run(args: List[String]): IO[ExitCode] = {
-    createApplication(Configuration(8080, "0.0.0.0"))
+    createApplication(Configuration(8080, "0.0.0.0", List("Ole", "Dole", "Doff")))
       .use(_ => IO.never)
   }
 
