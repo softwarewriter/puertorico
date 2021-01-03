@@ -1,24 +1,26 @@
 package no.jergan.puertorico.model
 
-import scala.collection.immutable.HashMap
-
 case class World (players: List[Player],
                   bank: Bank) {
 
-  def inputs(): List[List[Input]] = {
+  def player(): Player = {
+    players.head
+  }
+
+  def moves(): List[(String, List[Move])] = {
     List(
-      List(Input(0, "In00"), Input(1, "In01")),
-      List(Input(2, "In10"), Input(3, "In11")),
+      ("M0", List(Move("M00"), Move("M01"))),
+      ("M1", List(Move("M10"), Move("M11")))
     )
   }
 
-  def next(input: Input): World = {
-    println(input.index)
+  def next(move: Move): World = {
+    println(move.name)
     this.copy()
   }
 }
 
-case class Input(index: Int, name: String)
+case class Move(name: String)
 
 object World {
   def initial(players: List[String]): World = {

@@ -1,7 +1,7 @@
 package no.jergan.puertorico
 
 import cats.effect.{ConcurrentEffect, Resource, Sync, Timer}
-import no.jergan.puertorico.model.{Input, World}
+import no.jergan.puertorico.model.{World}
 import org.http4s.dsl.io.{->, GET, POST, Root}
 import org.http4s.headers.`Content-Type`
 import org.http4s.server.{Router, Server}
@@ -9,7 +9,6 @@ import org.http4s.{HttpRoutes, MediaType, Response, Status, UrlForm}
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext
-import scalatags.Text.all._
 
 /**
  * HTTP endpoints definitions.
@@ -23,28 +22,16 @@ object Endpoints {
                                             worlds: ListBuffer[World]
                                            ): Resource[F, Server[F]] = {
     val service: HttpRoutes[F] = HttpRoutes.of[F] {
-      case GET -> Root => Sync[F].pure {
-        println("get")
-        Response[F](Status.Ok)
-          .withEntity(HTML.toHtml(worlds.toList).render)
-          .withContentType(`Content-Type`(MediaType.text.html))
-      }
+      case GET -> Root => Sync[F].pure(response(worlds.toList))
       case req @ POST -> Root =>
         req.decode[UrlForm] { data =>
           Sync[F].pure{
-            println("post")
-            val input = data.getFirst(HTML.inputName)
-            val world = worlds.head
-            input.foreach(indexAsString => {
-              world.inputs().flatten
-                .find(_.index == Integer.parseInt(indexAsString))
-                .foreach(input => worlds.addOne(worlds.head.next(input)))
+            data.getFirst(HTML.inputName)
+            .foreach(indexAsString => {
+              HTML.move(worlds.head, indexAsString)
+                .foreach(move => worlds.addOne(worlds.head.next(move)))
             })
-            //               println(data.getFirst(HTML.inputName))
-            //               worlds.addOne(worlds.head.next(Input(0, "hei")))
-            Response[F](Status.Ok)
-              .withEntity(HTML.toHtml(worlds.toList).render)
-              .withContentType(`Content-Type`(MediaType.text.html))
+            response(worlds.toList)
           }
         }
     }
@@ -52,6 +39,12 @@ object Endpoints {
       "/"-> service,
     )
     HttpServer[F](configuration.port, configuration.bindAddress, executionContext, routes)
+  }
+
+  def response[F[_]](worlds: List[World]): Response[F] = {
+    Response[F](Status.Ok)
+      .withEntity(HTML.toHtml(worlds).render)
+      .withContentType(`Content-Type`(MediaType.text.html))
   }
 
 }

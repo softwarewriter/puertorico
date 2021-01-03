@@ -1,19 +1,27 @@
 package no.jergan.puertorico
 
-import no.jergan.puertorico.model.{Bank, Input, Player, World}
+import no.jergan.puertorico.model.{Bank, Move, Player, World}
 import scalatags.Text.all.{h1, html, _}
 
 object HTML {
 
+  case class Input(index: Int, move: Move)
+
   val inputName = "input"
+
+  def move(world: World, indexAsString: String): Option[Move] = {
+    inputs(world.moves()).flatMap(a => a._2)
+      .find(_.index == Integer.parseInt(indexAsString))
+      .map(input => input.move)
+  }
 
   def toHtml(worlds: List[World]): ConcreteHtmlTag[String] = {
     val world = worlds.head
     html(
       head(),
       body(
-        h1("Inputs"),
-        inputsToHtml(world.inputs()),
+        h1(s"Inputs for ${world.player.name}"),
+        inputsToHtml(world),
         h1("Players"),
         playersToHtml(world.players),
         h1("Bank"),
@@ -23,10 +31,12 @@ object HTML {
     ))
   }
 
-  def inputsToHtml(inputs: List[List[Input]]): ConcreteHtmlTag[String] = {
+  def inputsToHtml(world: World): ConcreteHtmlTag[String] = {
     form(`id`:="inputform")(`method`:="post")(
       table(
-        inputs.map(row => tr(row.map(input => td(button(`name`:=inputName)(`type`:="submit")(`value`:=input.index)(input.name)))))
+        inputs(world.moves())
+          .map(row => tr(td(row._1), row._2
+            .map(input => td(button(`name`:=inputName)(`type`:="submit")(`value`:=input.index)(input.move.name)))))
       )
     )
   }
@@ -51,4 +61,10 @@ object HTML {
       worlds.zipWithIndex.reverse.map(e => tr(td(e._2), td(e._1.players.size)))
     )
   }
+
+  private def inputs(moves: List[(String, List[Move])]): List[(String, List[Input])] = {
+    val indexes = LazyList.iterate(0)(_ + 1).iterator
+    moves.map(r => (r._1, r._2.map(e => Input(indexes.next(), e))))
+  }
+
 }
