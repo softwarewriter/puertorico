@@ -1,6 +1,6 @@
 package no.jergan.puertorico
 
-import no.jergan.puertorico.model.{Bank, Move, Player, World}
+import no.jergan.puertorico.model.{Bank, Frame, Move, Player, World}
 import scalatags.Text.all.{h1, html, _}
 
 object HTML {
@@ -15,8 +15,8 @@ object HTML {
       .map(input => input.move)
   }
 
-  def toHtml(worlds: List[World]): ConcreteHtmlTag[String] = {
-    val world = worlds.head
+  def toHtml(frames: List[Frame]): ConcreteHtmlTag[String] = {
+    val world = frames.head.world
     html(
       head(),
       body(
@@ -27,7 +27,7 @@ object HTML {
         h1("Bank"),
         bankToHtml(world.bank),
         h1("History"),
-        worldsToHtml(worlds)
+        framesToHtml(frames)
     ))
   }
 
@@ -55,10 +55,14 @@ object HTML {
     )
   }
 
-  def worldsToHtml(worlds: List[World]): ConcreteHtmlTag[String] = {
+  def framesToHtml(frames: List[Frame]): ConcreteHtmlTag[String] = {
     table(
-      tr(th("Iteration"), th("Players")),
-      worlds.zipWithIndex.reverse.map(e => tr(td(e._2), td(e._1.players.size)))
+      tr(th("Iteration"), th("Player"), th("Move")),
+      frames.zipWithIndex.reverse.map(e => {
+        val player = e._1.player.map(p => p.name).getOrElse("")
+        val move = e._1.move.map(m => m.name).getOrElse("")
+        tr(td(e._2), td(player), td(move))
+      })
     )
   }
 

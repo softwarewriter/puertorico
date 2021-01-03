@@ -1,7 +1,7 @@
 package no.jergan.puertorico
 
 import cats.effect.{ConcurrentEffect, Resource, Sync, Timer}
-import no.jergan.puertorico.model.{World}
+import no.jergan.puertorico.model.{Frame, Move, Player, World}
 import org.http4s.dsl.io.{->, GET, POST, Root}
 import org.http4s.headers.`Content-Type`
 import org.http4s.server.{Router, Server}
@@ -19,19 +19,20 @@ object Endpoints {
 
   def create[F[_]: ConcurrentEffect: Timer](configuration: Configuration,
                                             executionContext: ExecutionContext,
-                                            worlds: ListBuffer[World]
+                                            frames: ListBuffer[Frame]
                                            ): Resource[F, Server[F]] = {
     val service: HttpRoutes[F] = HttpRoutes.of[F] {
-      case GET -> Root => Sync[F].pure(response(worlds.toList))
+      case GET -> Root => Sync[F].pure(response(frames.toList))
       case req @ POST -> Root =>
         req.decode[UrlForm] { data =>
           Sync[F].pure{
+            val world = frames.head.world
             data.getFirst(HTML.inputName)
             .foreach(indexAsString => {
-              HTML.move(worlds.head, indexAsString)
-                .foreach(move => worlds.addOne(worlds.head.next(move)))
+              HTML.move(world, indexAsString)
+                .foreach(move => frames.addOne(Frame(Some(move), Some(world.player()), world.next(move))))
             })
-            response(worlds.toList)
+            response(frames.toList)
           }
         }
     }
@@ -41,9 +42,9 @@ object Endpoints {
     HttpServer[F](configuration.port, configuration.bindAddress, executionContext, routes)
   }
 
-  def response[F[_]](worlds: List[World]): Response[F] = {
+  def response[F[_]](frames: List[Frame]): Response[F] = {
     Response[F](Status.Ok)
-      .withEntity(HTML.toHtml(worlds).render)
+      .withEntity(HTML.toHtml(frames).render)
       .withContentType(`Content-Type`(MediaType.text.html))
   }
 

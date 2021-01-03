@@ -1,10 +1,13 @@
 package no.jergan.puertorico.model
 
+case class Frame(move: Option[Move], player: Option[Player], world: World)
+
 case class World (players: List[Player],
+                  playerIndex: Int,
                   bank: Bank) {
 
   def player(): Player = {
-    players.head
+    players(playerIndex)
   }
 
   def moves(): List[(String, List[Move])] = {
@@ -15,12 +18,11 @@ case class World (players: List[Player],
   }
 
   def next(move: Move): World = {
-    println(move.name)
-    this.copy()
+    val a = this.copy(playerIndex = (playerIndex + 1) % players.size, bank = Bank(VictoryPoints(42)))
+    println(a.playerIndex)
+    a
   }
 }
-
-case class Move(name: String)
 
 object World {
   def initial(players: List[String]): World = {
@@ -30,10 +32,15 @@ object World {
       (5, (Doubloons(4), VictoryPoints(122)))
     )
     val initialValue = initialValues.getOrElse(players.size, (Doubloons(0), VictoryPoints(0)))
-    new World(players.map(name => Player(name, VictoryPoints(0), initialValue._1)),
-      Bank(initialValue._2))
+    new World(
+      players.map(name => Player(name, VictoryPoints(0), initialValue._1)),
+      0,
+      Bank(initialValue._2)
+    )
   }
 }
+
+case class Move(name: String)
 
 case class Player(name: String, victoryPoints: VictoryPoints, doubloons: Doubloons)
 
