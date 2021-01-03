@@ -1,33 +1,27 @@
 package no.jergan.puertorico
 
-import no.jergan.puertorico.model.{Input, Player, World}
-import scalatags.Text.all.{html, _}
+import no.jergan.puertorico.model.{Bank, Input, Player, World}
+import scalatags.Text.all.{h1, html, _}
 
 object HTML {
 
   val inputName = "input"
 
-  def toHtml(world: World): ConcreteHtmlTag[String] = {
+  def toHtml(worlds: List[World]): ConcreteHtmlTag[String] = {
+    val world = worlds.head
     html(
       head(),
       body(
         h1("Inputs"),
         inputsToHtml(world.inputs()),
         h1("Players"),
-        playersToHtml(world.players)
+        playersToHtml(world.players),
+        h1("Bank"),
+        bankToHtml(world.bank),
+        h1("History"),
+        worldsToHtml(worlds)
     ))
   }
-
-  /*
- <form action="/action_page.php" method="get" id="form1">
-<label for="fname">First name:</label>
-<input type="text" id="fname" name="fname"><br><br>
-<label for="lname">Last name:</label>
-<input type="text" id="lname" name="lname">
-</form>
-
-<button type="submit" form="form1" value="Submit">Submit</button>
-   */
 
   def inputsToHtml(inputs: List[List[Input]]): ConcreteHtmlTag[String] = {
     form(`id`:="inputform")(`method`:="post")(
@@ -41,6 +35,20 @@ object HTML {
     table(
       tr(th("Name"), th("Victory points"), th("Doubloons")),
       players.map(p => tr(td(p.name), td(p.victoryPoints.value), td(p.doubloons.value)))
+    )
+  }
+
+  def bankToHtml(bank: Bank): ConcreteHtmlTag[String] = {
+    table(
+      tr(th("Victory points")),
+      tr(td(bank.victoryPoints.value))
+    )
+  }
+
+  def worldsToHtml(worlds: List[World]): ConcreteHtmlTag[String] = {
+    table(
+      tr(th("Iteration"), th("Players")),
+      worlds.zipWithIndex.reverse.map(e => tr(td(e._2), td(e._1.players.size)))
     )
   }
 }
