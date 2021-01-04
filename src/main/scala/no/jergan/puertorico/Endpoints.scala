@@ -1,7 +1,7 @@
 package no.jergan.puertorico
 
 import cats.effect.{ConcurrentEffect, Resource, Sync, Timer}
-import no.jergan.puertorico.model.{Frame, Move, Player, World}
+import no.jergan.puertorico.model.{Frame, Frames, Move, Player, World}
 import org.http4s.dsl.io.{->, GET, POST, Root}
 import org.http4s.headers.`Content-Type`
 import org.http4s.server.{Router, Server}
@@ -19,20 +19,21 @@ object Endpoints {
 
   def create[F[_]: ConcurrentEffect: Timer](configuration: Configuration,
                                             executionContext: ExecutionContext,
-                                            frames: ListBuffer[Frame]
+                                            frames: Frames
                                            ): Resource[F, Server[F]] = {
-    val service: HttpRoutes[F] = HttpRoutes.of[F] {
-      case GET -> Root => Sync[F].pure(response(frames.toList))
+    val service = HttpRoutes.of[F] {
+      case GET -> Root => Sync[F].pure(response(frames))
       case req @ POST -> Root =>
         req.decode[UrlForm] { data =>
           Sync[F].pure{
-            val world = frames.head.world
+            println(frames.current.world.toString)
+            val world = frames.current.world
             data.getFirst(HTML.inputName)
             .foreach(indexAsString => {
               HTML.move(world, indexAsString)
-                .foreach(move => frames.addOne(Frame(Some(move), Some(world.player()), world.next(move))))
+                .foreach(move => frames.add(Frame(Some(move), Some(world.player()), world.next(move))))
             })
-            response(frames.toList)
+            response(frames)
           }
         }
     }
@@ -42,7 +43,7 @@ object Endpoints {
     HttpServer[F](configuration.port, configuration.bindAddress, executionContext, routes)
   }
 
-  def response[F[_]](frames: List[Frame]): Response[F] = {
+  def response[F[_]](frames: Frames): Response[F] = {
     Response[F](Status.Ok)
       .withEntity(HTML.toHtml(frames).render)
       .withContentType(`Content-Type`(MediaType.text.html))

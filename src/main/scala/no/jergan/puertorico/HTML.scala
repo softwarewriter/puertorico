@@ -1,7 +1,7 @@
 package no.jergan.puertorico
 
-import no.jergan.puertorico.model.{Bank, Frame, Move, Player, World}
-import scalatags.Text.all.{h1, html, _}
+import no.jergan.puertorico.model.{Bank, Frame, Frames, Move, Player, World}
+import scalatags.Text.all._
 
 object HTML {
 
@@ -15,8 +15,8 @@ object HTML {
       .map(input => input.move)
   }
 
-  def toHtml(frames: List[Frame]): ConcreteHtmlTag[String] = {
-    val world = frames.head.world
+  def toHtml(frames: Frames): ConcreteHtmlTag[String] = {
+    val world = frames.current.world
     html(
       head(),
       body(
@@ -32,11 +32,11 @@ object HTML {
   }
 
   def inputsToHtml(world: World): ConcreteHtmlTag[String] = {
-    form(`id`:="inputform")(`method`:="post")(
+    form(id:="inputform")(method:="post")(
       table(
         inputs(world.moves())
           .map(row => tr(td(row._1), row._2
-            .map(input => td(button(`name`:=inputName)(`type`:="submit")(`value`:=input.index)(input.move.name)))))
+            .map(input => td(button(name:=inputName)(tpe:="submit")(value:=input.index)(input.move.name)))))
       )
     )
   }
@@ -55,10 +55,10 @@ object HTML {
     )
   }
 
-  def framesToHtml(frames: List[Frame]): ConcreteHtmlTag[String] = {
+  def framesToHtml(frames: Frames): ConcreteHtmlTag[String] = {
     table(
       tr(th("Iteration"), th("Player"), th("Move")),
-      frames.zipWithIndex.reverse.map(e => {
+      frames.toList.zipWithIndex.reverse.map(e => {
         val player = e._1.player.map(p => p.name).getOrElse("")
         val move = e._1.move.map(m => m.name).getOrElse("")
         tr(td(e._2), td(player), td(move))

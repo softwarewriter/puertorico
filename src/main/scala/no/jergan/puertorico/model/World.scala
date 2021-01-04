@@ -1,5 +1,27 @@
 package no.jergan.puertorico.model
 
+import scala.collection.mutable.ListBuffer
+
+class Frames(frames: ListBuffer[Frame]) {
+
+  def this(initial: World) = {
+    this(new ListBuffer().addOne(Frame(None, None, initial)))
+  }
+
+  def add(frame: Frame): Unit = {
+    frames.addOne(frame)
+  }
+
+  def current: Frame = {
+    frames.last
+  }
+
+  def toList: List[Frame] = {
+    this.frames.toList
+  }
+
+}
+
 case class Frame(move: Option[Move], player: Option[Player], world: World)
 
 case class World (players: List[Player],
