@@ -26,7 +26,6 @@ object Endpoints {
       case req @ POST -> Root =>
         req.decode[UrlForm] { data =>
           Sync[F].pure{
-            println(frames.current.world.toString)
             val world = frames.current.world
             data.getFirst(HTML.inputName)
             .foreach(indexAsString => {

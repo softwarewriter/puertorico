@@ -50,8 +50,24 @@ object HTML {
 
   def bankToHtml(bank: Bank): ConcreteHtmlTag[String] = {
     table(
-      tr(th("Victory points")),
-      tr(td(bank.victoryPoints.value))
+      tr(th("Misc"), th("Cards")),
+      tr(
+        td(
+          table(
+            tr(th("Victory points")),
+            tr(td(bank.victoryPoints.value))
+          )
+        ),
+        td(
+          table(
+            tr(th("Role"), th("Doubloons"), th("Player")),
+            bank.cards.map(c => {
+              val player = c.player.map(p => p.name).getOrElse("")
+              tr(td(c.role.toString), td(c.doubloons.value), td(player))
+            })
+          )
+        )
+      )
     )
   }
 
