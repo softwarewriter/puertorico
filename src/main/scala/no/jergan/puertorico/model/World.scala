@@ -55,16 +55,25 @@ object World {
       Card.empty(Role.Settler),
       Card.empty(Role.Trader)
     )
+
+    val initialGoods: Map[Goods, Int] = Map(
+      (Goods.Coffee, 9),
+      (Goods.Corn, 10),
+      (Goods.Indigo, 11),
+      (Goods.Sugar, 11),
+      (Goods.Tobacco, 9)
+    )
+
     val initialValues: Map[Int, (Doubloons, VictoryPoints, List[Card])] = Map(
       (3, (Doubloons(2), VictoryPoints(75), cards)),
       (4, (Doubloons(3), VictoryPoints(100), cards ++ List(Card.empty(Role.Prospector1)))),
       (5, (Doubloons(4), VictoryPoints(122), cards ++ List(Card.empty(Role.Prospector1), Card.empty(Role.Prospector2))))
     )
-    val initialValue = initialValues.getOrElse(players.size, (Doubloons(0), VictoryPoints(0), List[Card]()))
+    val initialValue = initialValues.apply(players.size)
     new World(
       players.map(name => Player(name, VictoryPoints(0), initialValue._1)),
       0,
-      Bank(initialValue._2, initialValue._3)
+      Bank(initialValue._2, initialValue._3, initialGoods)
     )
   }
 }
@@ -73,7 +82,7 @@ case class Move(name: String)
 
 case class Player(name: String, victoryPoints: VictoryPoints, doubloons: Doubloons)
 
-case class Bank(victoryPoints: VictoryPoints, cards: List[Card])
+case class Bank(victoryPoints: VictoryPoints, cards: List[Card], goods: Map[Goods, Int])
 
 case class Doubloons(value: Int)
 
@@ -96,4 +105,14 @@ object Role {
   case object Prospector2 extends Role
   case object Settler extends Role
   case object Trader extends Role
+}
+
+sealed trait Goods
+
+object Goods {
+  case object Coffee extends Goods
+  case object Corn extends Goods
+  case object Indigo extends Goods
+  case object Sugar extends Goods
+  case object Tobacco extends Goods
 }

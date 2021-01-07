@@ -19,7 +19,7 @@ object Main extends IOApp {
   }
 
   override def run(args: List[String]): IO[ExitCode] = {
-    createApplication(Configuration(8080, "0.0.0.0", List("Ole", "Dole", "Doff")))
+    createApplication(Configuration(8080, "0.0.0.0", List("Ada", "Erle", "Inez")))
       .use(_ => IO.never)
   }
 

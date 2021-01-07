@@ -50,7 +50,7 @@ object HTML {
 
   def bankToHtml(bank: Bank): ConcreteHtmlTag[String] = {
     table(
-      tr(th("Misc"), th("Cards")),
+      tr(th("Misc"), th("Cards"), th("Goods")),
       tr(
         td(
           table(
@@ -64,6 +64,14 @@ object HTML {
             bank.cards.map(c => {
               val player = c.player.map(p => p.name).getOrElse("")
               tr(td(c.role.toString), td(c.doubloons.value), td(player))
+            })
+          )
+        ),
+        td(
+          table(
+            tr(th("Name"), th("Count")),
+            bank.goods.keySet.toList.map(g => {
+              tr(td(g.toString), td(bank.goods.apply(g)))
             })
           )
         )
