@@ -8,5 +8,5 @@ libraryDependencies ++= Seq(
   "com.lihaoyi"       %% "scalatags"        % "0.8.2",
   "ch.qos.logback"    % "logback-classic"   % "1.2.3",
   "org.scala-lang"    % "scala-reflect"     % scalaVersion.value,
-  "org.scalatest"     %% "scalatest"        % "3.2.0" % Test
+  "org.scalatest"     %% "scalatest"        % "3.2.3" % Test
 )
